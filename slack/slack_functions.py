@@ -1,11 +1,4 @@
-import os
-import pickle
-import slack_bolt
-from langchain.llms import openai
-
-from consts import keys
-from slack.slack_utils import get_random_thinking_message, send_slack_message_and_return_message_id, get_vectorstore, \
-    get_response, divede_sentences, run, try_keys
+from slack.slack_utils import get_random_thinking_message, send_slack_message_and_return_message_id, divede_sentences, run
 
 
 def slack_respond_with_agent(event, ack, app, prompt):
