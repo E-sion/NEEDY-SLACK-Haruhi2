@@ -20,7 +20,7 @@ thinking_thoughts = [
     "Daydreaming ☁️..."
 ]
 
-thinking_thoughts_chiese = [
+thinking_thoughts_chinese = [
     "少女输入中..."
 ]
 
