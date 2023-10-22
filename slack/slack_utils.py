@@ -110,8 +110,6 @@ def get_response(q, vectorstore, key, base, prompt):
         combine_docs_chain_kwargs={'prompt': PROMPT}
     )
 
-    print('记忆内容：' + memory.buffer)
-
     response = qa({"question": q})
     answer = response["answer"]
     return answer
@@ -148,24 +146,26 @@ def run(role, user_prompt, system_prompt):
     # 在对话之前传入过往对话 并且去重
     chatbot.dialogue_history = list(collections.OrderedDict.fromkeys(all_dialogue_history))
 
-    # 获取bot回复
-    strs = chatbot.chat(role=role, text=user_prompt)
+    try:
+        # 获取bot回复
+        strs = chatbot.chat(role=role, text=user_prompt)
 
-    #  对回复进行正则匹配
-    regex = "「(.*?)」"
-    # 使用findall()函数返回所有匹配的结果
-    match = re.search(regex, strs)
-    # 使用group()函数获取捕获组的内容,即回复内容
-    result = match.group(1)
+        #  对回复进行正则匹配
+        regex = "「(.*?)」"
+        # 使用findall()函数返回所有匹配的结果
+        match = re.search(regex, strs)
+        # 使用group()函数获取捕获组的内容,即回复内容
+        result = match.group(1)
 
-    # 添加聊天记录至记忆库
-    all_dialogue_history.extend(chatbot.dialogue_history)
-    # 将all_dialogue_history里面的内容保存至本地，作为本地聊天数据库
-    with open('data/chat_history.pkl', 'wb') as f:
-        pickle.dump(all_dialogue_history, f)
-    print(result)
+        # 添加聊天记录
+        all_dialogue_history.append(chatbot.dialogue_history[-1])  # 只添加最后一条记录
+
+    finally:  # 无论对话是否出错，都执行以下代码
+        # 将all_dialogue_history里面的内容保存至本地，作为本地聊天数据库
+        with open('data/chat_history.pkl', 'wb+') as f:
+            pickle.dump(all_dialogue_history, f)
+
     return result
-
 
 
 # todo 自动更换key似乎无法正常使用，换回调用env文件中设定的key值
