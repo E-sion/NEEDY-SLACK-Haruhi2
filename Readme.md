@@ -1,4 +1,4 @@
-# Haruhi-2-Dev
+# NEEDY-SLACK-Haruhi2 
  
 ### 使用方法
 1.  下载本项目
@@ -18,3 +18,6 @@
    安卓：![屏幕截图 2023-10-20 174455.png](https://s2.loli.net/2023/10/20/PQ6sxhIkwVMRCDd.png)
 
    PC：![屏幕截图 2023-10-20 174322.png](https://s2.loli.net/2023/10/20/FWygupEkVYbHXMK.png)
+
+# 更多特点
+......
