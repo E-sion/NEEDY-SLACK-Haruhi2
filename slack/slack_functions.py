@@ -17,7 +17,7 @@ def slack_respond_with_agent(event, ack, app, prompt):
     # Generate an LLM response using agent chinese:  使用代理生成LLM响应
     user_query = event["text"]
 
-    print("用户输入", user_query)
+    print("user: ", user_query)
     # 调用函数
     # response = try_keys(keys, user_query, prompt)
 
@@ -25,7 +25,7 @@ def slack_respond_with_agent(event, ack, app, prompt):
     response = run('阿p', user_query, prompt)
 
     if response:
-        print(f"成功获取回复：{response}")
+        print(f"AI: {response}")
     else:
         print("key失效，请修改consts.py文件中的key列表")
 
@@ -35,10 +35,9 @@ def slack_respond_with_agent(event, ack, app, prompt):
     combined_response = '\n'.join(sentences)
 
     # Replace acknowledgement message with actual response chinese: 循环用实际响应替换确认消息
-    print("多段回复", combined_response)
     app.client.chat_update(
         channel=channel,
         text=combined_response,
         ts=ack_message_id,
     )
-    # 回复延迟，让回复更真实
+    # todo （不清楚是否添加） 回复延迟，让回复更真实

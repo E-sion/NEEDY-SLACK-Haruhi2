@@ -22,7 +22,10 @@ def is_dm(message) -> bool:
 
 
 def get_random_thinking_message():
-    return random.choice(thinking_thoughts)
+    '''
+    正在输入中
+    '''
+    return random.choice(thinking_thoughts_chinese)
 
 
 def send_slack_message_and_return_message_id(app, channel, message: str):
@@ -157,10 +160,17 @@ def run(role, user_prompt, system_prompt):
         # 使用group()函数获取捕获组的内容,即回复内容
         result = match.group(1)
 
+    except:
+        # todo 重写正则
+        # 迷惑的bot发言，有时候不会添加【】，也就会导致正则报错，同时正则少部分时候也会漏掉匹配部分话。
+        strs = chatbot.chat(role=role, text=user_prompt)
+        result = strs
+
+    finally:
+
         # 添加聊天记录
         all_dialogue_history.append(chatbot.dialogue_history[-1])  # 只添加最后一条记录
 
-    finally:  # 无论对话是否出错，都执行以下代码
         # 将all_dialogue_history里面的内容保存至本地，作为本地聊天数据库
         with open('data/chat_history.pkl', 'wb+') as f:
             pickle.dump(all_dialogue_history, f)
