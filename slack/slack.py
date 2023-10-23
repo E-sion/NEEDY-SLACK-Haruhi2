@@ -1,4 +1,6 @@
 import os
+import pickle
+
 from dotenv import load_dotenv
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
@@ -14,6 +16,7 @@ app = App(token=bot_token)
 
 prompt = choose_character(character)
 
+
 # 处理收到的 DM 消息
 @app.event("message")
 def handle_message_events(event, ack):
@@ -22,6 +25,7 @@ def handle_message_events(event, ack):
 
     return
 
+
 # todo 未来添加更多功能
 
 # @app.event("app_mention")
@@ -29,26 +33,27 @@ def handle_message_events(event, ack):
 #     slack_respond_with_agent(ack=ack, app=app, event=event, key=api_key, base=api_base,
 #                              vectorstore=vectorstore)
 
-#
-# @app.command("/upload-new-doc")
-# def handle_document_upload(body, say, ack):
-#     ack()
-#     value = body['text']
-#
-#     # If user didn't include a URL or URLs, then abort chinese:  如果用户没有包含URL或URL，则中止
-#     if (value == "" or value is None):
-#         say("Please enter a valid URL to the document!")
-#         return
-#
-#     say("I'm uploading a new document! :arrow_up:")
-#
-#     # Load the URLs into vectorstore chinese:  将URL加载到vectorstore中
-#     load_urls_and_overwrite_index(value)
-#
-#     say("I'm done uploading the document! :white_check_mark:")
+
+#  重置当前记忆
+@app.command("/reset")
+def clear_chat_history(say, ack):
+    with open('data/chat_history.pkl', 'wb') as f:
+        pickle.dump([], f)
+    ack()
+    say("`已重置对话`")
+
+
+
+# todo 添加人格切换
+@app.command("/change")
+def change_character(say, body, ack):
+    ack()
+    c_character = body["text"]
+    # 。。。。
+
+    say(f'已切换为{c_character}')
+    pass
 
 
 def run_slack_app():
     SocketModeHandler(app, app_token).start()
-
-
