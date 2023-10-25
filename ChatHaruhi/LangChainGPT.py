@@ -48,7 +48,7 @@ class LangChainGPT(BaseLLM):
         load_dotenv()
         api_base = os.environ["OPENAI_API_BASE"]
         api_key = os.environ["OPENAI_API_KEY"]
-        # @润竹  add api_base
+        # add api_base
         super(LangChainGPT, self).__init__()
         self.chat = ChatOpenAI(model=model, openai_api_base=api_base)
         self.messages = []
