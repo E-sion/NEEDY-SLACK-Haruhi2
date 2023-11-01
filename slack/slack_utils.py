@@ -167,9 +167,9 @@ def run(role, user_prompt, system_prompt):
         result = match.group()
     elif match2:
         # 迷惑的bot发言，有时候不会添加【】，也就会导致正则报错，同时正则少部分时候也会漏掉匹配部分话。
-        result = match.group()
+        result = match2.group()
     elif match3:
-        result = match.group()
+        result = match3.group()
     else:
         result = strs
 
