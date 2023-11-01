@@ -2,7 +2,7 @@ import os
 import pickle
 
 from dotenv import load_dotenv
-from slack_bolt import App
+from slack_bolt import App, Say
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack.slack_utils import is_dm, choose_character
 from slack.slack_functions import slack_respond_with_agent
@@ -22,7 +22,6 @@ prompt = choose_character(character)
 def handle_message_events(event, ack):
     if (is_dm(event)):
         slack_respond_with_agent(ack=ack, app=app, event=event, prompt=prompt)
-
     return
 
 
@@ -41,7 +40,7 @@ def clear_chat_history(say, ack):
         pickle.dump([], f)
     ack()
     say("`已重置对话`")
-
+    print('已重置对话')
 
 
 # todo 添加人格切换
@@ -50,7 +49,6 @@ def change_character(say, body, ack):
     ack()
     c_character = body["text"]
     # 。。。。
-
     say(f'已切换为{c_character}')
     pass
 
