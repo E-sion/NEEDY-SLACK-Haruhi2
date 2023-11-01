@@ -3,7 +3,7 @@ import os
 import random
 from typing import List
 import pickle
-
+from slack_bolt import App, Say
 from dotenv import load_dotenv
 from langchain.document_loaders import DirectoryLoader, TextLoader
 from langchain.llms import openai
@@ -149,31 +149,34 @@ def run(role, user_prompt, system_prompt):
     # 在对话之前传入过往对话 并且去重
     chatbot.dialogue_history = list(collections.OrderedDict.fromkeys(all_dialogue_history))
 
-    try:
-        # 获取bot回复
-        strs = chatbot.chat(role=role, text=user_prompt)
+    strs = chatbot.chat(role=role, text=user_prompt)
 
-        #  对回复进行正则匹配
-        regex = "「(.*?)」"
-        # 使用findall()函数返回所有匹配的结果
-        match = re.search(regex, strs)
+    #  对回复进行正则匹配
+    regex = "「(.*?)」"
+    # regex2 用于匹配中文或者英文冒号后面的内容
+    regex2 = "：(.*?)"
+    # regex3 用于其他的情况
+    regex3 = ":(.*?)"
+
+    # 使用findall()函数返回所有匹配的结果
+    match = re.search(regex, strs)
+    match2 = re.search(regex2, strs)
+    match3 = re.search(regex3, strs)
+    if match:
         # 使用group()函数获取捕获组的内容,即回复内容
         result = match.group(1)
-
-    except:
-        # todo 重写正则
+    elif match2:
         # 迷惑的bot发言，有时候不会添加【】，也就会导致正则报错，同时正则少部分时候也会漏掉匹配部分话。
-        strs = chatbot.chat(role=role, text=user_prompt)
-        result = strs
+        result = match.group(1)
+    elif match3 :
+        result = match.group(1)
 
-    finally:
+    # 添加聊天记录
+    all_dialogue_history.append(chatbot.dialogue_history[-1])  # 只添加最后一条记录
 
-        # 添加聊天记录
-        all_dialogue_history.append(chatbot.dialogue_history[-1])  # 只添加最后一条记录
-
-        # 将all_dialogue_history里面的内容保存至本地，作为本地聊天数据库
-        with open('data/chat_history.pkl', 'wb+') as f:
-            pickle.dump(all_dialogue_history, f)
+    # 将all_dialogue_history里面的内容保存至本地，作为本地聊天数据库
+    with open('data/chat_history.pkl', 'wb+') as f:
+        pickle.dump(all_dialogue_history, f)
 
     return result
 
