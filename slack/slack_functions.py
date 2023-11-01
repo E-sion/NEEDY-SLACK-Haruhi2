@@ -1,5 +1,6 @@
-from slack.slack_utils import get_random_thinking_message, send_slack_message_and_return_message_id, divede_sentences, run
-
+from slack.slack_utils import get_random_thinking_message, send_slack_message_and_return_message_id, divede_sentences, \
+    run
+from slack_bolt import App, Say
 
 def slack_respond_with_agent(event, ack, app, prompt):
     """
@@ -21,7 +22,6 @@ def slack_respond_with_agent(event, ack, app, prompt):
     # 调用函数
     # response = try_keys(keys, user_query, prompt)
 
-    # todo 添加用户自定义role值
     response = run('阿p', user_query, prompt)
 
     if response:
@@ -35,9 +35,10 @@ def slack_respond_with_agent(event, ack, app, prompt):
     combined_response = '\n'.join(sentences)
 
     # Replace acknowledgement message with actual response chinese: 循环用实际响应替换确认消息
+
     app.client.chat_update(
         channel=channel,
         text=combined_response,
         ts=ack_message_id,
     )
-    # todo （不清楚是否添加） 回复延迟，让回复更真实
+
