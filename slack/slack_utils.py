@@ -170,7 +170,6 @@ def run(role, user_prompt, system_prompt):
         result = match.group(0)
     elif match3:
         result = match.group(0)
-
     # 添加聊天记录
     all_dialogue_history.append(chatbot.dialogue_history[-1])  # 只添加最后一条记录
 
