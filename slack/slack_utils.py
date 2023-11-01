@@ -154,22 +154,16 @@ def run(role, user_prompt, system_prompt):
     #  对回复进行正则匹配
     regex = "「(.*?)」"
     # regex2 用于匹配中文或者英文冒号后面的内容
-    regex2 = "：(.*?)"
-    # regex3 用于其他的情况
-    regex3 = ":(.*?)"
-
+    regex2 = r"(?<=[:：]).+"
     # 使用findall()函数返回所有匹配的结果
     match = re.search(regex, strs)
     match2 = re.search(regex2, strs)
-    match3 = re.search(regex3, strs)
     if match:
         # 使用group()函数获取捕获组的内容,即回复内容
         result = match.group()
     elif match2:
         # 迷惑的bot发言，有时候不会添加【】，也就会导致正则报错，同时正则少部分时候也会漏掉匹配部分话。
         result = match2.group()
-    elif match3:
-        result = match3.group()
     else:
         result = strs
 
