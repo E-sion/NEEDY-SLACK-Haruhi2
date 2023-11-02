@@ -164,12 +164,12 @@ def run(role, user_prompt, system_prompt):
     match3 = re.search(regex3, strs)
     if match:
         # 使用group()函数获取捕获组的内容,即回复内容
-        result = match.group()
+        result = match.group(1)
     elif match2:
         # 迷惑的bot发言，有时候不会添加【】，也就会导致正则报错，同时正则少部分时候也会漏掉匹配部分话。
-        result = match.group()
+        result = match.group(1)
     elif match3:
-        result = match.group()
+        result = match.group(1)
     else:
         result = strs
 

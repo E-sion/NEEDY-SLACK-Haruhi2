@@ -6,7 +6,7 @@ import re
 import openai
 from dotenv import load_dotenv
 
-from ChatHaruhi import ChatHaruhi
+# from ChatHaruhi import ChatHaruhi
 
 
 def run(role, user_prompt, system_prompt):
@@ -53,7 +53,32 @@ def run(role, user_prompt, system_prompt):
     return result
 
 
+def re_str(strs):
+    regex = "「(.*?)」"
+    # regex2 用于匹配中文或者英文冒号后面的内容
+    regex2 = "：(.*?)"
+    # regex3 用于其他的情况
+    regex3 = ":(.*?)"
+
+    # 使用findall()函数返回所有匹配的结果
+    match = re.search(regex, strs)
+    match2 = re.search(regex2, strs)
+    match3 = re.search(regex3, strs)
+    if match:
+        # 使用group()函数获取捕获组的内容,即回复内容
+        result = match.group(1)
+        print(result)
+    elif match2:
+        # 迷惑的bot发言，有时候不会添加【】，也就会导致正则报错，同时正则少部分时候也会漏掉匹配部分话。
+        result = match.group(1)
+        print(result)
+    elif match3:
+        result = match.group(1)
+        print(result)
+    else:
+        result = strs
+        print(result)
 
 if __name__ == '__main__':
-    run('阿p', '你好', '你是一个友善的bot')
-
+    # run('阿p', '你好', '你是一个友善的bot')
+    re_str('糖糖：「你好」')
