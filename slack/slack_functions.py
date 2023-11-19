@@ -1,6 +1,8 @@
+import os
+
 from slack.slack_utils import get_random_thinking_message, send_slack_message_and_return_message_id, divede_sentences, \
     run
-from slack_bolt import App, Say
+
 
 def slack_respond_with_agent(event, ack, app, prompt):
     """
@@ -22,7 +24,9 @@ def slack_respond_with_agent(event, ack, app, prompt):
     # 调用函数
     # response = try_keys(keys, user_query, prompt)
 
-    response = run('阿p', user_query, prompt)
+    user_name = os.environ["USER_NAME"]
+
+    response = run(user_name, user_query, prompt)
 
     if response:
         print(f"AI: {response}")
@@ -41,4 +45,3 @@ def slack_respond_with_agent(event, ack, app, prompt):
         text=combined_response,
         ts=ack_message_id,
     )
-
