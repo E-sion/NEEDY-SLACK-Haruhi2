@@ -18,7 +18,36 @@ import os
 
 import tqdm
 
-from consts import keys
+import requests
+
+
+def get_access_token():
+    API_KEY = os.getenv("StoryAudit_API_AK")
+    SECRET_KEY = os.getenv("StoryAudit_API_SK")
+
+    """
+    使用 AK，SK 生成鉴权签名（Access Token）
+    :return: access_token，或是None(如果错误)
+    """
+    url = "https://aip.baidubce.com/oauth/2.0/token"
+    params = {"grant_type": "client_credentials", "client_id": API_KEY, "client_secret": SECRET_KEY}
+    return str(requests.post(url, params=params).json().get("access_token"))
+
+
+'''
+文本审核接口
+'''
+
+
+def text_censor(text):
+    request_url = "https://aip.baidubce.com/rest/2.0/solution/v1/text_censor/v2/user_defined"
+
+    params = {"text": text}
+    access_token = get_access_token()
+    request_url = request_url + "?access_token=" + access_token
+    headers = {'content-type': 'application/x-www-form-urlencoded'}
+    response = requests.post(request_url, data=params, headers=headers)
+    return response.json()["conclusion"] == "合规"
 
 
 def package_role(system_prompt, texts_path, embedding):
@@ -89,6 +118,71 @@ _luotuo_en_tokenizer = None
 
 _enc_model = None
 
+# ======== add bge model
+# by Cheng Li
+# for English only right now
+
+_bge_model = None
+_bge_tokenizer = None
+
+
+def get_bge_embeddings(sentences):
+    # unsafe ensure batch size by yourself
+
+    global _bge_model
+    global _bge_tokenizer
+
+    if _bge_model is None:
+        from transformers import AutoTokenizer, AutoModel
+        _bge_tokenizer = AutoTokenizer.from_pretrained('BAAI/bge-small-en-v1.5')
+        _bge_model = AutoModel.from_pretrained('BAAI/bge-small-en-v1.5')
+
+    _bge_model.eval()
+
+    # Tokenize sentences
+    encoded_input = _bge_tokenizer(sentences, padding=True, truncation=True, return_tensors='pt', max_length=512)
+
+    # Compute token embeddings
+    with torch.no_grad():
+        model_output = _bge_model(**encoded_input)
+        # Perform pooling. In this case, cls pooling.
+        sentence_embeddings = model_output[0][:, 0]
+    # normalize embeddings
+    sentence_embeddings = torch.nn.functional.normalize(sentence_embeddings, p=2, dim=1)
+    return sentence_embeddings.cpu().tolist()
+
+
+def get_bge_embedding(text_or_texts):
+    if isinstance(text_or_texts, str):
+        return get_bge_embeddings([text_or_texts])[0]
+    else:
+        return get_bge_embeddings_safe(text_or_texts)
+
+
+bge_batch_size = 32
+
+import math
+
+
+# from tqdm import tqdm
+
+def get_bge_embeddings_safe(sentences):
+    embeddings = []
+
+    num_batches = math.ceil(len(sentences) / bge_batch_size)
+
+    for i in tqdm.tqdm(range(num_batches)):
+        # print("run bge with batch ", i)
+        start_index = i * bge_batch_size
+        end_index = min(len(sentences), start_index + bge_batch_size)
+        batch = sentences[start_index:end_index]
+        embs = get_bge_embeddings(batch)
+        embeddings.extend(embs)
+
+    return embeddings
+
+
+# === add bge model
 
 def tiktokenizer(text):
     global _enc_model
@@ -200,53 +294,36 @@ def get_embedding_for_chinese(model, texts):
 
 
 def is_chinese_or_english(text):
-    return "english"
+    text = list(text)
+    is_chinese, is_english = 0, 0
 
-    # text = list(text)
-    # is_chinese, is_english = 0, 0
-    #
-    # for char in text:
-    #     # 判断字符的Unicode值是否在中文字符的Unicode范围内
-    #     if '\u4e00' <= char <= '\u9fa5':
-    #         is_chinese += 4
-    #     # 判断字符是否为英文字符（包括大小写字母和常见标点符号）
-    #     elif ('\u0041' <= char <= '\u005a') or ('\u0061' <= char <= '\u007a'):
-    #         is_english += 1
-    # if is_chinese >= is_english:
-    #     return "chinese"
-    # else:
-    #     return "english"
+    for char in text:
+        # 判断字符的Unicode值是否在中文字符的Unicode范围内
+        if '\u4e00' <= char <= '\u9fa5':
+            is_chinese += 4
+        # 判断字符是否为英文字符（包括大小写字母和常见标点符号）
+        elif ('\u0041' <= char <= '\u005a') or ('\u0061' <= char <= '\u007a'):
+            is_english += 1
+    if is_chinese >= is_english:
+        return "chinese"
+    else:
+        return "english"
 
 
-# @润竹 修改embedding。
+def get_embedding_openai(text, model="text-embedding-ada-002"):
+    text = text.replace("\n", " ")
+    return openai.Embedding.create(input=[text], model=model)['data'][0]['embedding']
+
+
 def get_embedding_for_english(text, model="text-embedding-ada-002"):
     text = text.replace("\n", " ")
-    load_dotenv()
-    openai.api_key = os.environ.get("OPENAI_API_KEY")
-    openai.api_base = os.environ.get("OPENAI_API_BASE")
-
-    return openai.Embedding.create(input=[text], model=model, )['data'][0]['embedding']
-
-
-# def get_embedding_for_english(text, model="text-embedding-ada-002"):
-#     load_dotenv()
-#     openai.api_base = os.environ["OPENAI_API_BASE"]
-#
-#     for api_key in keys:
-#         print(api_key)
-#         try:
-#             text = text.replace("\n", " ")
-#             openai.api_key = api_key
-#             return openai.Embedding.create(input=[text], model=model, )['data'][0]['embedding']
-#         except:
-#             print(f"key: {api_key} 已失效，正在尝试下一个 key...")
-#     print("所有的 key 都失效了。")
-#     return None
+    return openai.Embedding.create(input=[text], model=model)['data'][0]['embedding']
 
 
 import os
 
 
+# 跳过中文检测，直接使用openai embedding
 def luotuo_openai_embedding(texts, is_chinese=None):
     """
         when input is chinese, use luotuo_embedding
@@ -256,22 +333,23 @@ def luotuo_openai_embedding(texts, is_chinese=None):
         when texts is a string, return a single embedding
     """
 
-    openai_key = os.environ.get("OPENAI_API_KEY")
 
+    load_dotenv()
+    openai.api_key = os.environ.get("OPENAI_API_KEY")
+    openai.api_base = os.environ.get("OPENAI_API_BASE")
     if isinstance(texts, list):
-        index = random.randint(0, len(texts) - 1)
-
-        return [get_embedding_for_english(text) for text in texts]
-
+        # index = random.randint(0, len(texts) - 1)
         # if openai_key is None or is_chinese_or_english(texts[index]) == "chinese":
         #     return [embed.cpu().tolist() for embed in get_embedding_for_chinese(get_luotuo_model(), texts)]
         # else:
         #     return [get_embedding_for_english(text) for text in texts]
+        return get_embedding_openai(texts)
     else:
         # if openai_key is None or is_chinese_or_english(texts) == "chinese":
         #     return get_embedding_for_chinese(get_luotuo_model(), texts)[0].cpu().tolist()
         # else:
-        return get_embedding_for_english(texts)
+        #     return get_embedding_for_english(texts)
+        return get_embedding_openai(texts)
 
 
 # compute cosine similarity between two vector

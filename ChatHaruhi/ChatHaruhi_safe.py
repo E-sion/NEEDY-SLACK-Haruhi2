@@ -5,7 +5,9 @@ from .utils import luotuo_openai_embedding, tiktokenizer
 
 from .utils import response_postprocess
 
-class ChatHaruhi:
+from .utils import text_censor
+
+class ChatHaruhi_safe:
 
     def __init__(self, system_prompt = None, \
                  role_name = None, role_from_hf = None, \
@@ -14,7 +16,7 @@ class ChatHaruhi:
                  embedding = 'luotuo_openai', \
                  max_len_story = None, max_len_history = None,
                  verbose = False):
-        super(ChatHaruhi, self).__init__()
+        super(ChatHaruhi_safe, self).__init__()
         self.verbose = verbose
 
         # constants
@@ -302,8 +304,9 @@ class ChatHaruhi:
             else:
                 sum_story_token += story_token
                 story_string += story + self.dialogue_divide_token
-
-        self.llm.user_message(story_string)
+        
+        if text_censor(story_string):
+            self.llm.user_message(story_string)
         
     def add_history(self):
 

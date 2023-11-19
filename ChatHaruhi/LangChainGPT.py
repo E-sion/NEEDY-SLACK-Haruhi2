@@ -45,12 +45,16 @@ from dotenv import load_dotenv
 class LangChainGPT(BaseLLM):
 
     def __init__(self, model="gpt-3.5-turbo"):
-        load_dotenv()
-        api_base = os.environ["OPENAI_API_BASE"]
-        api_key = os.environ["OPENAI_API_KEY"]
-        # add api_base
         super(LangChainGPT, self).__init__()
-        self.chat = ChatOpenAI(model=model, openai_api_base=api_base)
+        self.model = model
+        if "OPENAI_API_BASE" in os.environ:
+            load_dotenv()
+            api_base = os.environ["OPENAI_API_BASE"]
+            api_key = os.environ["OPENAI_API_KEY"]
+            self.chat = ChatOpenAI(model=self.model, openai_api_base=api_base)
+        else:
+            self.chat = ChatOpenAI(model=self.model)
+        # add api_base        
         self.messages = []
 
     def initialize_message(self):
