@@ -1,16 +1,15 @@
 import collections
 import os
-import random
-from typing import List
 import pickle
-from slack_bolt import App, Say
+import random
+import re
+from typing import List
+
 from dotenv import load_dotenv
-from langchain.document_loaders import DirectoryLoader, TextLoader
-from langchain.llms import openai
 
 from ChatHaruhi import ChatHaruhi
+
 from consts import *
-import re
 
 
 def is_dm(message) -> bool:
@@ -22,9 +21,9 @@ def is_dm(message) -> bool:
 
 
 def get_random_thinking_message():
-    '''
+    """
     正在输入中
-    '''
+    """
     return random.choice(thinking_thoughts_chinese)
 
 
@@ -36,91 +35,26 @@ def send_slack_message_and_return_message_id(app, channel, message: str):
         message_id = response["message"]["ts"]
         return message_id
     else:
-        return ("Failed to send message.")
+        return "Failed to send message."
 
 
 def divede_sentences(text: str) -> List[str]:
     """
     将bot的回复进行分割成多段落
     """
-    sentences = re.findall(r'.*?[~。！？…]+', text)
-    if len(sentences) == 0:
-        return [text]
-    return sentences
+    # sentences = re.findall(r'.*?[~。！？…]+', text)
+    # if len(sentences) == 0:
+    #     return [text]
+    # return sentences
+    sentences = re.split('(?<=[？！])', text)
+    return [sentence for sentence in sentences if sentence]
 
 
-def get_vectorstore(path, key, base, save_vectorstore_name):
-    """
-    生成vectorstore,并保存
-    """
-    loader = DirectoryLoader(path=path, glob="**/*.txt", loader_cls=TextLoader, show_progress=True)
-    docs = loader.load()
-
-    from langchain.text_splitter import RecursiveCharacterTextSplitter
-
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=100,
-    )
-
-    documents = text_splitter.split_documents(docs)
-    # documents[0]
-
-    from langchain.embeddings import OpenAIEmbeddings
-
-    embeddings = OpenAIEmbeddings(openai_api_key=key,
-                                  openai_api_base=base)
-
-    from langchain.vectorstores.faiss import FAISS
-
-    vectorstore = FAISS.from_documents(documents, embeddings)
-
-    with open(save_vectorstore_name, "wb") as f:
-        pickle.dump(vectorstore, f)
-
-    print("vectorstore已保存")
-
-
-def get_response(q, vectorstore, key, base, prompt):
-    """
-    处理用户输入，返回机器人回复
-    """
-
-    # 读取数据库
-    with open(vectorstore, "rb") as f:
-        vectorstore = pickle.load(f)
-
-    from langchain.prompts import PromptTemplate
-
-    prompt_template = prompt
-
-    PROMPT = PromptTemplate(
-        template=prompt_template, input_variables=["context", "question"])
-
-    from langchain.chat_models import ChatOpenAI
-
-    from langchain.memory import ConversationBufferMemory
-
-    memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True, output_key='answer')
-
-    from langchain.chains import ConversationalRetrievalChain
-
-    qa = ConversationalRetrievalChain.from_llm(
-        llm=ChatOpenAI(temperature=1.0, openai_api_key=key,
-                       openai_api_base=base, ),
-        memory=memory,
-        retriever=vectorstore.as_retriever(),
-        combine_docs_chain_kwargs={'prompt': PROMPT}
-    )
-
-    response = qa({"question": q})
-    answer = response["answer"]
-    return answer
-
-
-def choose_character(chacater):
-    if chacater == '糖糖':
+def choose_character(character):
+    if character == '糖糖':
         return 糖糖
+    elif character == '傲娇_亚璃子':
+        return 傲娇_亚璃子
     # todo 添加更多人物
 
 
@@ -137,7 +71,8 @@ def run(role, user_prompt, system_prompt):
     else:
         all_dialogue_history = []
 
-    db_folder = 'data/characters/Girl_one'
+    db_folder = os.environ["CHARACTER_DB"]
+
     # system_prompt = 'file/character/system_prompt.txt'
     system_prompt = system_prompt
 
