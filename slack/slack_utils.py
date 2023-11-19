@@ -97,20 +97,17 @@ def run(role, user_prompt, system_prompt):
     match = re.search(regex, strs)
     match2 = re.search(regex2, strs)
     match3 = re.search(regex3, strs)
-    # 使用try 来截获报错
-    try:
-        if match:
-            # 使用group()函数获取捕获组的内容,即回复内容
-            result = match.group(1)
-        elif match2:
-            # 迷惑的bot发言，有时候不会添加【】，也就会导致正则报错，同时正则少部分时候也会漏掉匹配部分话。
-            result = match.group(1)
-        elif match3:
-            result = match.group(1)
-        else:
-            result = strs
-    except Exception as e:
+    if match:
+        # 使用group()函数获取捕获组的内容,即回复内容
+        result = match.group(1)
+    elif match2:
+        # 迷惑的bot发言，有时候不会添加【】，也就会导致正则报错，同时正则少部分时候也会漏掉匹配部分话。
+        result = match2.group(1)
+    elif match3:
+        result = match3.group(1)
+    else:
         result = strs
+
 
     # 添加聊天记录
     all_dialogue_history.append(chatbot.dialogue_history[-1])  # 只添加最后一条记录
