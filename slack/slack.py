@@ -19,18 +19,16 @@ prompt = choose_character(character)
 
 # 处理收到的 DM 消息
 @app.event("message")
-def handle_message_events(event, ack):
+def handle_message_events(event, ack, say):
     if (is_dm(event)):
-        slack_respond_with_agent(ack=ack, app=app, event=event, prompt=prompt)
+        slack_respond_with_agent(ack=ack, app=app, event=event, prompt=prompt, say=say)
     return
 
 
-# todo 未来添加更多功能
-
-# @app.event("app_mention")
-# def handle_mention(event, ack):
-#     slack_respond_with_agent(ack=ack, app=app, event=event, key=api_key, base=api_base,
-#                              vectorstore=vectorstore)
+# 群聊
+@app.event("app_mention")
+def handle_mention(event, ack, say):
+    slack_respond_with_agent(ack=ack, app=app, event=event, prompt=prompt, say=say)
 
 
 #  重置当前记忆
@@ -47,9 +45,9 @@ def clear_chat_history(say, ack):
 @app.command("/change")
 def change_character(say, body, ack):
     ack()
-    c_character = body["text"]
-    # 。。。。
-    say(f'已切换为{c_character}')
+    change_character = body["text"]
+    # todo 未来通过更改env文件中的CHARACTER值来实现人格切换
+    say(f'已切换为{change_character}')
     pass
 
 
