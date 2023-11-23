@@ -55,6 +55,8 @@ def choose_character(character):
         return 糖糖
     elif character == '傲娇_亚璃子':
         return 傲娇_亚璃子
+    elif character == '与里':
+        return
     # todo 添加更多人物
 
 
@@ -79,35 +81,22 @@ def run(role, user_prompt, system_prompt):
     chatbot = ChatHaruhi(system_prompt=system_prompt,
                          llm='openai',
                          story_db=db_folder,
-                         verbose=True)
+                         verbose=True,
+                         )
 
     # 在对话之前传入过往对话 并且去重
     chatbot.dialogue_history = list(collections.OrderedDict.fromkeys(all_dialogue_history))
 
     strs = chatbot.chat(role=role, text=user_prompt)
 
-    #  对回复进行正则匹配
-    regex = "「(.*?)」"
-    # regex2 用于匹配中文或者英文冒号后面的内容
-    regex2 = "：(.*?)"
-    # regex3 用于其他的情况
-    regex3 = ":(.*?)"
+    if '「' in strs:
+        strs = strs.replace('「', '')
+        strs = strs.replace('」', '')
 
-    # 使用findall()函数返回所有匹配的结果
-    match = re.search(regex, strs)
-    match2 = re.search(regex2, strs)
-    match3 = re.search(regex3, strs)
-    if match:
-        # 使用group()函数获取捕获组的内容,即回复内容
-        result = match.group(1)
-    elif match2:
-        # 迷惑的bot发言，有时候不会添加【】，也就会导致正则报错，同时正则少部分时候也会漏掉匹配部分话。
-        result = match2.group(1)
-    elif match3:
-        result = match3.group(1)
-    else:
-        result = strs
-
+        if ':' in strs:
+            result = strs.split(':')[1]
+        elif '：' in strs:
+            result = strs.split('：')[1]
 
     # 添加聊天记录
     all_dialogue_history.append(chatbot.dialogue_history[-1])  # 只添加最后一条记录
