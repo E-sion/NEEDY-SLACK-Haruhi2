@@ -4,7 +4,7 @@ from slack.slack_utils import get_random_thinking_message, send_slack_message_an
     run
 
 
-def slack_respond_with_agent(event, ack, app, prompt):
+def slack_respond_with_agent(event, ack, app, prompt, say):
     """
     This function takes a Slack message event and respond with a LLM-generated response
     chinese:  该函数接受Slack消息事件，并使用LLM生成的响应进行响应
@@ -26,22 +26,23 @@ def slack_respond_with_agent(event, ack, app, prompt):
 
     user_name = os.environ["USER_NAME"]
 
+    # 似乎直接return的内容是一段完整的对话
     response = run(user_name, user_query, prompt)
 
-    if response:
-        print(f"AI: {response}")
-    else:
-        print("key失效，请修改consts.py文件中的key列表")
+    # todo 到底要不要添加这个功能呢？
+    # 把AI的回复内容重新处理成多端对话之后再发送
 
-    # 调用分割bot回复的函数
-    sentences = divede_sentences(response)
-    # 将所有回复拼接成一个字符串
-    combined_response = '\n'.join(sentences)
+    # # 调用分割bot回复的函数
+    # sentences = divede_sentences(response)
+    # # 将所有回复拼接成一个字符串
+    # combined_response = '\n'.join(sentences)
 
     # Replace acknowledgement message with actual response chinese: 循环用实际响应替换确认消息
+    ack()
+    say(response)
 
-    app.client.chat_update(
-        channel=channel,
-        text=combined_response,
-        ts=ack_message_id,
-    )
+    # app.client.chat_update(
+    #     channel=channel,
+    #     text=response,
+    #     ts=ack_message_id,
+    # )
