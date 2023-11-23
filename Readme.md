@@ -9,7 +9,7 @@
 
 `pip install -r requirements.txt`
 
-3. 修改配置文件，在项目的根目录下修改`.env`文件，按要求填写数值，不需要修改SUPABASE_KEY和SUPABASE_URL，CHARACTER的 值
+3. 修改配置文件，在项目的根目录下修改`.env`文件，按要求填写数值
 
 
 4. 运行 `main.py` 即可
