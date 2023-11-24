@@ -1,17 +1,7 @@
-
 *.xml
 *.iml
 *.patch
 *.pyc
 .env
-.env
-*.pyc
-*.pyc
-*.pyc
-*.pyc
 *.bin
-*.pyc
 *.pickle
-*.bin
-*.pyc
-*.pyc
