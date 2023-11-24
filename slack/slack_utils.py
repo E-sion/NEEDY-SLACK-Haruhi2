@@ -3,13 +3,17 @@ import os
 import pickle
 import random
 import re
-from typing import List
+import time
+from typing import List, Any
 
 from dotenv import load_dotenv
+from langchain.callbacks.base import BaseCallbackHandler
+from langchain.schema import LLMResult
 
 from ChatHaruhi import ChatHaruhi
 
 from consts import *
+from slack_bolt import App
 
 
 def is_dm(message) -> bool:
@@ -42,10 +46,6 @@ def divede_sentences(text: str) -> List[str]:
     """
     将bot的回复进行分割成多段落
     """
-    # sentences = re.findall(r'.*?[~。！？…]+', text)
-    # if len(sentences) == 0:
-    #     return [text]
-    # return sentences
     sentences = re.split('(?<=[？！])', text)
     return [sentence for sentence in sentences if sentence]
 
@@ -60,7 +60,7 @@ def choose_character(character):
     # todo 添加更多人物
 
 
-def run(role, user_prompt, system_prompt):
+def run(role, user_prompt, system_prompt, callback):
     # 读取key
     load_dotenv()
     os.environ.get("OPENAI_API_KEY")
@@ -82,21 +82,14 @@ def run(role, user_prompt, system_prompt):
                          llm='openai',
                          story_db=db_folder,
                          verbose=True,
+                         callback=callback
                          )
 
     # 在对话之前传入过往对话 并且去重
     chatbot.dialogue_history = list(collections.OrderedDict.fromkeys(all_dialogue_history))
 
-    strs = chatbot.chat(role=role, text=user_prompt)
-
-    if '「' in strs:
-        strs = strs.replace('「', '')
-        strs = strs.replace('」', '')
-
-        if ':' in strs:
-            result = strs.split(':')[1]
-        elif '：' in strs:
-            result = strs.split('：')[1]
+    # 进行回复
+    chatbot.chat(role=role, text=user_prompt)
 
     # 添加聊天记录
     all_dialogue_history.append(chatbot.dialogue_history[-1])  # 只添加最后一条记录
@@ -105,6 +98,20 @@ def run(role, user_prompt, system_prompt):
     with open('data/chat_history.pkl', 'wb+') as f:
         pickle.dump(all_dialogue_history, f)
 
+
+# 去除回复中的特定符号
+def remove_special_characters(text):
+    if '「' or '」' in text:
+        a = text.replace('「', '')
+        text = a.replace('」', '')
+        if ':' in text:
+            result = text.split(':')[1]
+        elif '：' in text:
+            result = text.split('：')[1]
+        else:
+            result = text
+    else:
+        result = text
     return result
 
 
@@ -120,6 +127,53 @@ def try_keys(keys, user_query, prompt):
 
     print("所有的 key 都失效了。")
     return None
+
+
+CHAT_UPDATE_INTERVAL_SEC = 1
+load_dotenv()
+bot_token = os.environ["SLACK_BOT_TOKEN"]
+app = App(token=bot_token)
+
+
+class SlackStreamingCallbackHandler(BaseCallbackHandler):
+    """
+    Slack 流式输出
+    """
+    last_send_time = time.time()
+    message = ""
+
+    def __init__(self, channel, ts):
+        self.channel = channel
+        self.ts = ts
+        self.interval = CHAT_UPDATE_INTERVAL_SEC
+        # 投稿を更新した累計回数カウンタ
+        self.update_count = 0
+
+    def on_llm_new_token(self, token: str, **kwargs) -> None:
+        self.message += token
+        self.message = remove_special_characters(self.message)
+        now = time.time()
+        if now - self.last_send_time > self.interval:
+            app.client.chat_update(
+                channel=self.channel, ts=self.ts, text=f"{self.message}\n\nTyping ⚙️..."
+            )
+            self.last_send_time = now
+            self.update_count += 1
+
+            # update_countが現在の更新間隔X10より多くなるたびに更新間隔を2倍にする
+            if self.update_count / 10 > self.interval:
+                self.interval = self.interval * 2
+
+    def on_llm_end(self, response: LLMResult, **kwargs: Any) -> Any:
+        message_blocks = [
+            {"type": "section", "text": {"type": "mrkdwn", "text": self.message}},
+        ]
+        app.client.chat_update(
+            channel=self.channel,
+            ts=self.ts,
+            text=self.message,
+            blocks=message_blocks,
+        )
 
 
 if __name__ == '__main__':
