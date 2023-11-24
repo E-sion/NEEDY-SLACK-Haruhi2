@@ -65,9 +65,11 @@ def run(role, user_prompt, system_prompt, callback, db_folder):
     load_dotenv()
     os.environ.get("OPENAI_API_KEY")
 
+    history_name = db_folder.split('/')[-1]
+
     # 读取本地历史对话（如果有）
-    if os.path.exists('data/chat_history.pkl'):
-        with open('data/chat_history.pkl', 'rb') as f:
+    if os.path.exists(f'data/chat_history/{history_name}_history.pkl'):
+        with open(f'data/chat_history/{history_name}_history.pkl', 'rb') as f:
             all_dialogue_history = pickle.load(f)
             print(f' 本地聊天记忆库：{all_dialogue_history}\n')
     else:
@@ -92,7 +94,7 @@ def run(role, user_prompt, system_prompt, callback, db_folder):
     all_dialogue_history.append(chatbot.dialogue_history[-1])  # 只添加最后一条记录
 
     # 将all_dialogue_history里面的内容保存至本地，作为本地聊天数据库
-    with open('data/chat_history.pkl', 'wb+') as f:
+    with open(f'data/chat_history/{history_name}_history.pkl', 'wb+') as f:
         pickle.dump(all_dialogue_history, f)
 
 
