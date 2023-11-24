@@ -21,7 +21,7 @@ thinking_thoughts = [
 ]
 
 thinking_thoughts_chinese = [
-    "少女输入中..."
+    "Typing ⚙️...",
 ]
 
 糖糖 = '''
