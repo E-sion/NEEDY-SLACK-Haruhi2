@@ -23,7 +23,6 @@
 #       primaryClass={cs.CL}
 # }
 
-
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts.chat import (
     ChatPromptTemplate,
@@ -44,14 +43,18 @@ from dotenv import load_dotenv
 
 class LangChainGPT(BaseLLM):
 
-    def __init__(self, model="gpt-3.5-turbo"):
+    def __init__(self, model="gpt-3.5-turbo", callback=None):
         super(LangChainGPT, self).__init__()
         self.model = model
         if "OPENAI_API_BASE" in os.environ:
             load_dotenv()
             api_base = os.environ["OPENAI_API_BASE"]
             api_key = os.environ["OPENAI_API_KEY"]
-            self.chat = ChatOpenAI(model=self.model, openai_api_base=api_base)
+            streaming = os.environ["OPENAI_STREAMING"]
+            model = os.environ["OPENAI_MODEL"]
+            self.chat = ChatOpenAI(model=model, openai_api_base=api_base, openai_api_key=api_key,
+                                   streaming=streaming,
+                                   callbacks=[callback], )
         else:
             self.chat = ChatOpenAI(model=self.model)
         # add api_base        
