@@ -3,3 +3,5 @@
 *.iml
 *.patch
 *.pyc
+.env
+.env
