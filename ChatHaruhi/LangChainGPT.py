@@ -50,10 +50,9 @@ class LangChainGPT(BaseLLM):
             load_dotenv()
             api_base = os.environ["OPENAI_API_BASE"]
             api_key = os.environ["OPENAI_API_KEY"]
-            streaming = os.environ["OPENAI_STREAMING"]
             model = os.environ["OPENAI_MODEL"]
             self.chat = ChatOpenAI(model=model, openai_api_base=api_base, openai_api_key=api_key,
-                                   streaming=streaming,
+                                   streaming=True,
                                    callbacks=[callback], )
         else:
             self.chat = ChatOpenAI(model=self.model)
