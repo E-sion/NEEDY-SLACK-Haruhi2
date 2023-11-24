@@ -52,15 +52,15 @@ def divede_sentences(text: str) -> List[str]:
 
 def choose_character(character):
     if character == '糖糖':
-        return 糖糖
+        return 糖糖, 'data/characters/NEEDY'
     elif character == '傲娇_亚璃子':
-        return 傲娇_亚璃子
+        return 傲娇_亚璃子, 'data/characters/AoJiao'
     elif character == '与里':
         return
     # todo 添加更多人物
 
 
-def run(role, user_prompt, system_prompt, callback):
+def run(role, user_prompt, system_prompt, callback, db_folder):
     # 读取key
     load_dotenv()
     os.environ.get("OPENAI_API_KEY")
@@ -73,9 +73,6 @@ def run(role, user_prompt, system_prompt, callback):
     else:
         all_dialogue_history = []
 
-    db_folder = os.environ["CHARACTER_DB"]
-
-    # system_prompt = 'file/character/system_prompt.txt'
     system_prompt = system_prompt
 
     chatbot = ChatHaruhi(system_prompt=system_prompt,

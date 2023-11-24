@@ -14,21 +14,21 @@ character = os.environ["CHARACTER"]
 
 app = App(token=bot_token)
 
-prompt = choose_character(character)
+prompt, character_db = choose_character(character)
 
 
 # 处理收到的 DM 消息
 @app.event("message")
-def handle_message_events(event, ack, say):
-    if (is_dm(event)):
-        slack_respond_with_agent(ack=ack, app=app, event=event, prompt=prompt, say=say)
+def handle_message_events(event, ack):
+    if is_dm(event):
+        slack_respond_with_agent(ack=ack, app=app, event=event, prompt=prompt, character_db=character_db)
     return
 
 
 # 群聊
 @app.event("app_mention")
-def handle_mention(event, ack, say):
-    slack_respond_with_agent(ack=ack, app=app, event=event, prompt=prompt, say=say)
+def handle_mention(event, ack):
+    slack_respond_with_agent(ack=ack, app=app, event=event, prompt=prompt, character_db=character_db)
 
 
 #  重置当前记忆
@@ -46,7 +46,6 @@ def clear_chat_history(say, ack):
 def change_character(say, body, ack):
     ack()
     change_character = body["text"]
-    # todo 未来通过更改env文件中的CHARACTER值来实现人格切换
     say(f'已切换为{change_character}')
     pass
 
