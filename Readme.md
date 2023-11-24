@@ -22,7 +22,6 @@ SLACK_APP_ID=xxx
 
 USER_NAME=xx
 CHARACTER=傲娇_亚璃子
-CHARACTER_DB=data/characters/AoJiao
 
 TIP=小提示：USER_NAME的值为bot对你的称呼，CHARACTER可以设定角色，目前只内置了两个角色，分别是傲娇_亚璃子和糖糖。
 ```
