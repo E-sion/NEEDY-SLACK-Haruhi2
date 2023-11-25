@@ -1,24 +1,15 @@
+import base64
+import re
+import struct
 from argparse import Namespace
 
 import openai
+import requests
+import tiktoken
+import torch
+import tqdm
 from dotenv import load_dotenv
 from transformers import AutoModel, AutoTokenizer
-import torch
-import random
-
-import tiktoken
-import re
-
-import numpy as np
-
-import base64
-import struct
-
-import os
-
-import tqdm
-
-import requests
 
 
 def get_access_token():
@@ -332,7 +323,6 @@ def luotuo_openai_embedding(texts, is_chinese=None):
         when texts is a list, return a list of embeddings, using batch inference
         when texts is a string, return a single embedding
     """
-
 
     load_dotenv()
     openai.api_key = os.environ.get("OPENAI_API_KEY")
