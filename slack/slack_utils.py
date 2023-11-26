@@ -53,8 +53,8 @@ def divede_sentences(text: str) -> List[str]:
 def choose_character(character):
     if character == '糖糖':
         return 糖糖, 'data/characters/NEEDY'
-    elif character == '傲娇_亚璃子':
-        return 傲娇_亚璃子, 'data/characters/AoJiao'
+    elif character == '亚璃子':
+        return 亚璃子, 'data/characters/AoJiao'
     elif character == '与里':
         return
     # todo 添加更多人物
@@ -64,10 +64,10 @@ def run(role, user_prompt, system_prompt, callback, db_folder):
     # 读取key
     load_dotenv()
     os.environ.get("OPENAI_API_KEY")
-
+    history_name = db_folder.split('/')[-1]
     # 读取本地历史对话（如果有）
-    if os.path.exists('data/chat_history.pkl'):
-        with open('data/chat_history.pkl', 'rb') as f:
+    if os.path.exists(f'data/chat_history/{history_name}_history.pkl'):
+        with open(f'data/chat_history/{history_name}_history.pkl', 'rb') as f:
             all_dialogue_history = pickle.load(f)
             print(f' 本地聊天记忆库：{all_dialogue_history}\n')
     else:
@@ -77,9 +77,10 @@ def run(role, user_prompt, system_prompt, callback, db_folder):
 
     chatbot = ChatHaruhi(system_prompt=system_prompt,
                          llm='openai',
+                         story_prefix_prompt='## 语气模仿 \n 以下是该角色的一段对话记录，你需要根据语境进行适当的修改加工以及延申扩展：\n',
                          story_db=db_folder,
                          verbose=True,
-                         callback=callback
+                         callback=callback,
                          )
 
     # 在对话之前传入过往对话 并且去重
@@ -92,23 +93,17 @@ def run(role, user_prompt, system_prompt, callback, db_folder):
     all_dialogue_history.append(chatbot.dialogue_history[-1])  # 只添加最后一条记录
 
     # 将all_dialogue_history里面的内容保存至本地，作为本地聊天数据库
-    with open('data/chat_history.pkl', 'wb+') as f:
+    with open(f'data/chat_history/{history_name}_history.pkl', 'wb+') as f:
         pickle.dump(all_dialogue_history, f)
 
 
 # 去除回复中的特定符号
-def remove_special_characters(text):
-    if '「' or '」' in text:
-        a = text.replace('「', '')
-        text = a.replace('」', '')
-        if ':' in text:
-            result = text.split(':')[1]
-        elif '：' in text:
-            result = text.split('：')[1]
-        else:
-            result = text
-    else:
-        result = text
+def remove_special_characters(text, name):
+    # 删除文本中的「和」
+    text = text.replace('「', '')
+    text = text.replace('」', '')
+    result = text.replace(f'{name}:', '')
+
     return result
 
 
@@ -145,10 +140,12 @@ class SlackStreamingCallbackHandler(BaseCallbackHandler):
         self.interval = CHAT_UPDATE_INTERVAL_SEC
         # 投稿を更新した累計回数カウンタ
         self.update_count = 0
+        load_dotenv()
+        self.name = os.environ["CHARACTER"]
 
     def on_llm_new_token(self, token: str, **kwargs) -> None:
         self.message += token
-        self.message = remove_special_characters(self.message)
+        self.message = remove_special_characters(self.message, self.name)
         now = time.time()
         if now - self.last_send_time > self.interval:
             app.client.chat_update(
