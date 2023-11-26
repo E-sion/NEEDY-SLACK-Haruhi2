@@ -31,9 +31,11 @@ TIP=小提示：USER_NAME的值为bot对你的称呼，CHARACTER可以设定角�
 5. 运行 `main.py` 即可
 
 6. 效果示例：
-   安卓：![屏幕截图 2023-10-20 174455.png](https://s2.loli.net/2023/10/20/PQ6sxhIkwVMRCDd.png)
+   安卓：
+![屏幕截图 2023-10-20 174455.png](https://s2.loli.net/2023/10/20/PQ6sxhIkwVMRCDd.png)
 
-   PC：![屏幕截图 2023-10-20 174322.png](https://s2.loli.net/2023/10/20/FWygupEkVYbHXMK.png)
+   PC：
+![屏幕截图 2023-10-20 174322.png](https://s2.loli.net/2023/10/20/FWygupEkVYbHXMK.png)
 
 # 更多特点
 ......
