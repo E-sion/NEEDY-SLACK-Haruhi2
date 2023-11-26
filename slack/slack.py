@@ -34,8 +34,7 @@ def handle_mention(event, ack):
 #  重置当前记忆
 @app.command("/reset")
 def clear_chat_history(say, ack):
-    history_name = character_db.split('/')[-1]
-    with open(f'data/chat_history/{history_name}_history.pkl', 'wb') as f:
+    with open('data/chat_history.pkl', 'wb') as f:
         pickle.dump([], f)
     ack()
     say("`已重置对话`")
