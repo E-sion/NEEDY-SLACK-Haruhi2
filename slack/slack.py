@@ -28,7 +28,7 @@ def handle_message_events(event, ack):
 # 群聊
 @app.event("app_mention")
 def handle_mention(event, ack):
-    slack_respond_with_agent(ack=ack, app=app, event=event, prompt=prompt, character_db=character_db)
+    slack_respond_with_agent(ack=ack, app=app, event=event, prompt=prompt, character_db=character_db, is_thread=True)
 
 
 #  重置当前记忆

@@ -31,10 +31,27 @@ def get_random_thinking_message():
     return random.choice(thinking_thoughts_chinese)
 
 
-def send_slack_message_and_return_message_id(app, channel, message: str):
-    response = app.client.chat_postMessage(
-        channel=channel,
-        text=message)
+def send_slack_message_and_return_message_id(app, channel, message: str, thread_ts, is_thread):
+    """
+    在一个群聊里面进行对话，然后获取到对话的线程，再到线程里面进行回复
+    https://api.slack.com/messaging/managing#threading
+    （有教程真好）
+    :param is_thread:
+    :param thread_ts:
+    :param app:
+    :param channel:
+    :param message:
+    :return:
+    """
+    if is_thread:
+        response = app.client.chat_postMessage(
+            channel=channel,
+            text=message,
+            thread_ts=thread_ts)
+    else:
+        response = app.client.chat_postMessage(
+            channel=channel,
+            text=message)
     if response["ok"]:
         message_id = response["message"]["ts"]
         return message_id
@@ -45,6 +62,11 @@ def send_slack_message_and_return_message_id(app, channel, message: str):
 def divede_sentences(text: str) -> List[str]:
     """
     将bot的回复进行分割成多段落
+    这个功能可以让bot的回复更加自然，而不是一次性回复一大段话
+    但是这个功能在slack上面似乎不太好用，暂时pass吧。
+    todo 以后再来研究
+    :param text:
+    :return:
     """
     sentences = re.split('(?<=[？！])', text)
     return [sentence for sentence in sentences if sentence]
@@ -60,7 +82,7 @@ def choose_character(character):
     # todo 添加更多人物
 
 
-def run(role, user_prompt, system_prompt, callback, db_folder):
+def run(role, user_prompt, system_prompt, callback, db_folder, is_mention=False):
     # 读取key
     load_dotenv()
     os.environ.get("OPENAI_API_KEY")
@@ -102,8 +124,10 @@ def remove_special_characters(text, name):
     # 删除文本中的「和」
     text = text.replace('「', '')
     text = text.replace('」', '')
-    result = text.replace(f'{name}:', '')
-
+    if f"{name}:" in text:
+        result = text.replace(f'{name}:', '')
+    else:
+        result = text.replace(f'{name}：', '')
     return result
 
 

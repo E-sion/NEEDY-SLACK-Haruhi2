@@ -5,7 +5,7 @@ from slack.slack_utils import get_random_thinking_message, send_slack_message_an
     run, SlackStreamingCallbackHandler
 
 
-def slack_respond_with_agent(event, ack, app, prompt, character_db):
+def slack_respond_with_agent(event, ack, app, prompt, character_db, is_thread=False):
     """
     This function takes a Slack message event and respond with a LLM-generated response
     chinese:  该函数接受Slack消息事件，并使用LLM生成的响应进行响应
@@ -16,7 +16,7 @@ def slack_respond_with_agent(event, ack, app, prompt, character_db):
     # Acknowledge user's message chinese:  确认用户的消息
     ack()
     ack_message_id = send_slack_message_and_return_message_id(
-        app=app, channel=channel, message=get_random_thinking_message())
+        app=app, channel=channel, message=get_random_thinking_message(), is_thread=is_thread, thread_ts=event["event_ts"])
 
     # Generate an LLM response using agent chinese:  使用代理生成LLM响应
     if "@" in event["text"]:
