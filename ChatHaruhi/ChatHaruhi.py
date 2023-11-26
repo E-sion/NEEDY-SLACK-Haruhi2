@@ -18,13 +18,14 @@ class ChatHaruhi:
                  max_len_story=None,
                  max_len_history=None,
                  verbose=False,
-                 callback=None):  # 新增callback，用于流式传递salck消息
+                 callback=None,
+                 story_prefix_prompt=None):  # 新增callback，用于流式传递salck消息
         super(ChatHaruhi, self).__init__()
         self.verbose = verbose
         self.callback = callback  # new callback
 
         # constants
-        self.story_prefix_prompt = "Classic scenes for the role are as follows:\n"
+        self.story_prefix_prompt = story_prefix_prompt
         self.k_search = 19
         self.narrator = ['旁白', '', 'scene', 'Scene', 'narrator', 'Narrator']
         self.dialogue_divide_token = '\n###\n'
