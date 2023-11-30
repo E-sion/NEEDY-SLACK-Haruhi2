@@ -99,7 +99,8 @@ def run(role, user_prompt, system_prompt, callback, db_folder, is_mention=False)
 
     chatbot = ChatHaruhi(system_prompt=system_prompt,
                          llm='openai',
-                         story_prefix_prompt='## 语气模仿 \n 以下是该角色的一段对话记录，你需要根据语境进行适当的修改加工以及延申扩展：\n',
+                         story_prefix_prompt='## 经典对话记录 \n 以下是该角色的一段经典对话记录，你要学习模仿这这些经典对话记录的说话口吻,然后再以一种更加口语化的语气进行对话。\n'
+                                             '## 历史对话 \n 历史对话在随机对话记录的底下，你需要区分经典对话记录和我们的历史对话 \n',
                          story_db=db_folder,
                          verbose=True,
                          callback=callback,
