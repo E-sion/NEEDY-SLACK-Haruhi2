@@ -16,6 +16,11 @@ app = App(token=bot_token)
 
 prompt, character_db = choose_character(character)
 
+if os.path.exists("data/chat_history"):
+    pass
+else:
+    # 不存在则新建
+    os.makedirs("data/chat_history")
 
 # 处理收到的 DM 消息
 @app.event("message")
